@@ -64,8 +64,10 @@ public class ISO88591Escaper implements ICharacterEscaper
 
     public void writeAttribute(String text, Writer writer) throws IOException {
         int mark = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
+
+        int chr;
+        for (int i = 0; i < text.length(); Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '"') {
                 writer.write(text, mark, i-mark);
                 mark = i+1;
@@ -117,8 +119,10 @@ public class ISO88591Escaper implements ICharacterEscaper
 
     public void writeContent(String text, Writer writer) throws IOException {
         int mark = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
+
+        int chr;
+        for (int i = 0; i < text.length(); i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '&') {
                 writer.write(text, mark, i-mark);
                 mark = i+1;
@@ -167,8 +171,10 @@ public class ISO88591Escaper implements ICharacterEscaper
 
     public void writeCData(String text, Writer writer) throws IOException {
         writer.write("<![CDATA[");
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
+
+        int chr;
+        for (int i = 0; i < text.length(); i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '>' && i > 2 && text.charAt(i-1) == ']' &&
                 text.charAt(i-2) == ']') {
                 throw new IOException("Sequence \"]]>\" is not allowed " +

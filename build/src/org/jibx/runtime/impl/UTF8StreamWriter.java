@@ -28,9 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package org.jibx.runtime.impl;
 
-import java.io.IOException;
-
 import org.jibx.runtime.IXMLWriter;
+
+import java.io.IOException;
 
 /**
  * Handler for marshalling text document to a UTF-8 output stream.
@@ -190,49 +190,59 @@ public class UTF8StreamWriter extends StreamWriterBase
         int length = text.length();
         makeSpace(length * 6);
         int fill = m_fillOffset;
-        for (int i = 0; i < length; i++) {
-            char chr = text.charAt(i);
+
+        int chr;
+        for (int i = 0; i < length; i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '"') {
                 fill = writeEntity(m_quotEntityBytes, fill);
-            } else if (chr == '&') {
+            }
+            else if (chr == '&') {
                 fill = writeEntity(m_ampEntityBytes, fill);
-            } else if (chr == '<') {
+            }
+            else if (chr == '<') {
                 fill = writeEntity(m_ltEntityBytes, fill);
-            } else if (chr == '>' && i > 2 && text.charAt(i-1) == ']' &&
-                text.charAt(i-2) == ']') {
-                m_buffer[fill++] = (byte)']';
-                m_buffer[fill++] = (byte)']';
+            }
+            else if (chr == '>' && i > 2 && text.charAt(i - 1) == ']' && text.charAt(i - 2) == ']') {
+                m_buffer[fill++] = (byte) ']';
+                m_buffer[fill++] = (byte) ']';
                 fill = writeEntity(m_gtEntityBytes, fill);
-            } else if (chr < 0x20) {
+            }
+            else if (chr < 0x20) {
                 if (chr != 0x9 && chr != 0xA && chr != 0xD) {
-                    throw new IOException("Illegal character code 0x" +
-                        Integer.toHexString(chr) + " in attribute value text");
-                } else {
-                    m_buffer[fill++] = (byte)chr;
+                    throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in attribute value text");
                 }
-            } else {
-                if (chr > 0x7F) {
-                    if (chr > 0x7FF) {
-                        if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE ||
-                            chr == 0xFFFF || chr > 0x10FFFF)) {
-                            throw new IOException("Illegal character code 0x" +
-                                Integer.toHexString(chr) +
-                                " in attribute value text");
-                        } else {
-                            m_buffer[fill++] = (byte)(0xE0 + (chr >> 12));
-                            m_buffer[fill++] =
-                                (byte)(0x80 + ((chr >> 6) & 0x3F));
-                            m_buffer[fill++] = (byte)(0x80 + (chr & 0x3F));
-                        }
-                    } else {
-                        m_buffer[fill++] = (byte)(0xC0 + (chr >> 6));
-                        m_buffer[fill++] = (byte)(0x80 + (chr & 0x3F));
+
+                m_buffer[fill++] = (byte) chr;
+            }
+            else if (chr > 0x7F) {
+                if (chr > 0x7FF) {
+                    if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE || chr == 0xFFFF || chr > 0x10FFFF)) {
+                        throw new IOException(
+                                "Illegal character code 0x" + Integer.toHexString(chr) + " in attribute value text");
                     }
-                } else {
-                    m_buffer[fill++] = (byte)chr;
+
+                    if (chr > 0xFFFF) {
+                        m_buffer[fill++] = (byte) (0xF0 + (chr >> 18));
+                        m_buffer[fill++] = (byte) (0x80 + (chr >> 12 & 0x3F));
+                    }
+                    else {
+                        m_buffer[fill++] = (byte) (0xE0 + (chr >> 12));
+                    }
+
+                    m_buffer[fill++] = (byte) (0x80 + (chr >> 6 & 0x3F));
+                    m_buffer[fill++] = (byte) (0x80 + (chr & 0x3F));
+                }
+                else {
+                    m_buffer[fill++] = (byte) (0xC0 + (chr >> 6));
+                    m_buffer[fill++] = (byte) (0x80 + (chr & 0x3F));
                 }
             }
+            else {
+                m_buffer[fill++] = (byte) chr;
+            }
         }
+
         m_fillOffset = fill;
     }
     
@@ -247,44 +257,53 @@ public class UTF8StreamWriter extends StreamWriterBase
         int length = text.length();
         makeSpace(length * 5);
         int fill = m_fillOffset;
-        for (int i = 0; i < length; i++) {
-            char chr = text.charAt(i);
+
+        int chr;
+        for (int i = 0; i < length; i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '&') {
                 fill = writeEntity(m_ampEntityBytes, fill);
-            } else if (chr == '<') {
+            }
+            else if (chr == '<') {
                 fill = writeEntity(m_ltEntityBytes, fill);
-            } else if (chr == '>' && i > 2 && text.charAt(i-1) == ']' &&
-                text.charAt(i-2) == ']') {
+            }
+            else if (chr == '>' && i > 2 && text.charAt(i - 1) == ']' && text.charAt(i - 2) == ']') {
                 fill = writeEntity(m_gtEntityBytes, fill);
-            } else if (chr < 0x20) {
+            }
+            else if (chr < 0x20) {
                 if (chr != 0x9 && chr != 0xA && chr != 0xD) {
-                    throw new IOException("Illegal character code 0x" +
-                        Integer.toHexString(chr) + " in content text");
-                } else {
-                    m_buffer[fill++] = (byte)chr;
+                    throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in content text");
                 }
-            } else {
-                if (chr > 0x7F) {
-                    if (chr > 0x7FF) {
-                        if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE ||
-                            chr == 0xFFFF || chr > 0x10FFFF)) {
-                            throw new IOException("Illegal character code 0x" +
-                                Integer.toHexString(chr) + " in content text");
-                        } else {
-                            m_buffer[fill++] = (byte)(0xE0 + (chr >> 12));
-                            m_buffer[fill++] =
-                                (byte)(0x80 + ((chr >> 6) & 0x3F));
-                            m_buffer[fill++] = (byte)(0x80 + (chr & 0x3F));
-                        }
-                    } else {
-                        m_buffer[fill++] = (byte)(0xC0 + (chr >> 6));
-                        m_buffer[fill++] = (byte)(0x80 + (chr & 0x3F));
+
+                m_buffer[fill++] = (byte) chr;
+            }
+            else if (chr > 0x7F) {
+                if (chr > 0x7FF) {
+                    if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE || chr == 0xFFFF || chr > 0x10FFFF)) {
+                        throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in content text");
                     }
-                } else {
-                    m_buffer[fill++] = (byte)chr;
+
+                    if (chr > 0xFFFF) {
+                        m_buffer[fill++] = (byte) (0xF0 + (chr >> 18));
+                        m_buffer[fill++] = (byte) (0x80 + (chr >> 12 & 0x3F));
+                    }
+                    else {
+                        m_buffer[fill++] = (byte) (0xE0 + (chr >> 12));
+                    }
+
+                    m_buffer[fill++] = (byte) (0x80 + (chr >> 6 & 0x3F));
+                    m_buffer[fill++] = (byte) (0x80 + (chr & 0x3F));
+                }
+                else {
+                    m_buffer[fill++] = (byte) (0xC0 + (chr >> 6));
+                    m_buffer[fill++] = (byte) (0x80 + (chr & 0x3F));
                 }
             }
+            else {
+                m_buffer[fill++] = (byte) chr;
+            }
         }
+
         m_fillOffset = fill;
     }
     
@@ -300,42 +319,48 @@ public class UTF8StreamWriter extends StreamWriterBase
         makeSpace(length * 3 + 12);
         int fill = m_fillOffset;
         fill = writeEntity(m_cdataStartBytes, fill);
-        for (int i = 0; i < length; i++) {
-            char chr = text.charAt(i);
-            if (chr == '>' && i > 2 && text.charAt(i-1) == ']' &&
-                text.charAt(i-2) == ']') {
-                throw new IOException("Sequence \"]]>\" is not allowed " +
-                    "within CDATA section text");
-            } else if (chr < 0x20) {
+
+        int chr;
+        for (int i = 0; i < length; i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
+            if (chr == '>' && i > 2 && text.charAt(i - 1) == ']' && text.charAt(i - 2) == ']') {
+                throw new IOException("Sequence \"]]>\" is not allowed within CDATA section text");
+            }
+
+            if (chr < 0x20) {
                 if (chr != 0x9 && chr != 0xA && chr != 0xD) {
-                    throw new IOException("Illegal character code 0x" +
-                        Integer.toHexString(chr) + " in content text");
-                } else {
-                    m_buffer[fill++] = (byte)chr;
+                    throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in content text");
                 }
-            } else {
-                if (chr > 0x7F) {
-                    if (chr > 0x7FF) {
-                        if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE ||
-                            chr == 0xFFFF || chr > 0x10FFFF)) {
-                            throw new IOException("Illegal character code 0x" +
-                                Integer.toHexString(chr) +
-                                " in CDATA section text");
-                        } else {
-                            m_buffer[fill++] = (byte)(0xE0 + (chr >> 12));
-                            m_buffer[fill++] =
-                                (byte)(0x80 + ((chr >> 6) & 0x3F));
-                            m_buffer[fill++] = (byte)(0x80 + (chr & 0x3F));
-                        }
-                    } else {
-                        m_buffer[fill++] = (byte)(0xC0 + (chr >> 6));
-                        m_buffer[fill++] = (byte)(0x80 + (chr & 0x3F));
+
+                m_buffer[fill++] = (byte) chr;
+            }
+            else if (chr > 0x7F) {
+                if (chr > 0x7FF) {
+                    if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE || chr == 0xFFFF || chr > 0x10FFFF)) {
+                        throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in CDATA section text");
                     }
-                } else {
-                    m_buffer[fill++] = (byte)chr;
+
+                    if (chr > 0xFFFF) {
+                        m_buffer[fill++] = (byte) (0xF0 + (chr >> 18));
+                        m_buffer[fill++] = (byte) (0x80 + (chr >> 12 & 0x3F));
+                    }
+                    else {
+                        m_buffer[fill++] = (byte) (0xe0 + (chr >> 12));
+                    }
+
+                    m_buffer[fill++] = (byte) (0x80 + (chr >> 6 & 0x3F));
+                    m_buffer[fill++] = (byte) (0x80 + (chr & 0x3F));
+                }
+                else {
+                    m_buffer[fill++] = (byte) (0xC0 + (chr >> 6));
+                    m_buffer[fill++] = (byte) (0x80 + (chr & 0x3F));
                 }
             }
+            else {
+                m_buffer[fill++] = (byte) chr;
+            }
         }
+
         m_fillOffset = writeEntity(m_cdataEndBytes, fill);
     }
     

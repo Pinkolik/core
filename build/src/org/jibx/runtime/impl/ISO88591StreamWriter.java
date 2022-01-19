@@ -89,8 +89,9 @@ public class ISO88591StreamWriter extends StreamWriterBase
         int length = text.length();
         makeSpace(length);
         int fill = m_fillOffset;
-        for (int i = 0; i < length; i++) {
-            char chr = text.charAt(i);
+        int chr;
+        for(int i = 0; i < length; i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr > 0xFF) {
                 throw new IOException("Unable to write character code 0x" +
                     Integer.toHexString(chr) + " in encoding ISO-8859-1");
@@ -172,8 +173,9 @@ public class ISO88591StreamWriter extends StreamWriterBase
         int length = text.length();
         makeSpace(length * 6);
         int fill = m_fillOffset;
-        for (int i = 0; i < length; i++) {
-            char chr = text.charAt(i);
+        int chr;
+        for(int i = 0; i < length; i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '"') {
                 fill = writeEntity(m_quotEntityBytes, fill);
             } else if (chr == '&') {
@@ -235,8 +237,9 @@ public class ISO88591StreamWriter extends StreamWriterBase
         int length = text.length();
         makeSpace(length * 5);
         int fill = m_fillOffset;
-        for (int i = 0; i < length; i++) {
-            char chr = text.charAt(i);
+        int chr;
+        for(int i = 0; i < length; i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '&') {
                 fill = writeEntity(m_ampEntityBytes, fill);
             } else if (chr == '<') {
@@ -295,8 +298,9 @@ public class ISO88591StreamWriter extends StreamWriterBase
         makeSpace(length + 12);
         int fill = m_fillOffset;
         fill = writeEntity(m_cdataStartBytes, fill);
-        for (int i = 0; i < length; i++) {
-            char chr = text.charAt(i);
+        int chr;
+        for(int i = 0; i < length; i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '>' && i > 2 && text.charAt(i-1) == ']' &&
                 text.charAt(i-2) == ']') {
                 throw new IOException("Sequence \"]]>\" is not allowed " +

@@ -28,10 +28,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package org.jibx.runtime.impl;
 
+import org.jibx.runtime.ICharacterEscaper;
+
 import java.io.IOException;
 import java.io.Writer;
-
-import org.jibx.runtime.ICharacterEscaper;
 
 /**
  * Handler for writing UTF output stream (for any form of UTF, despite the
@@ -43,138 +43,150 @@ import org.jibx.runtime.ICharacterEscaper;
  * @version 1.0
  */
 
-public class UTF8Escaper implements ICharacterEscaper
-{
+public class UTF8Escaper implements ICharacterEscaper {
+
     /** Singleton instance of class. */
     private static final UTF8Escaper s_instance = new UTF8Escaper();
-    
+
     /**
      * Private constructor to prevent external creation.
      */
-    
+
     private UTF8Escaper() {}
-    
+
     /**
      * Write attribute value with character entity substitutions. This assumes
      * that attributes use the regular quote ('"') delimitor.
      *
-     * @param text attribute value text
+     * @param text   attribute value text
      * @param writer sink for output text
+     *
      * @throws IOException on error writing to document
      */
 
     public void writeAttribute(String text, Writer writer) throws IOException {
         int mark = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
+
+        int chr;
+        for (int i = 0; i < text.length(); i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '"') {
-                writer.write(text, mark, i-mark);
-                mark = i+1;
+                writer.write(text, mark, i - mark);
+                mark = i + 1;
                 writer.write("&quot;");
-            } else if (chr == '&') {
-                writer.write(text, mark, i-mark);
-                mark = i+1;
+            }
+            else if (chr == '&') {
+                writer.write(text, mark, i - mark);
+                mark = i + 1;
                 writer.write("&amp;");
-            } else if (chr == '<') {
-                writer.write(text, mark, i-mark);
-                mark = i+1;
+            }
+            else if (chr == '<') {
+                writer.write(text, mark, i - mark);
+                mark = i + 1;
                 writer.write("&lt;");
-            } else if (chr == '>' && i > 2 && text.charAt(i-1) == ']' &&
-                text.charAt(i-2) == ']') {
-                writer.write(text, mark, i-mark-2);
-                mark = i+1;
+            }
+            else if (chr == '>' && i > 2 && text.charAt(i - 1) == ']' && text.charAt(i - 2) == ']') {
+                writer.write(text, mark, i - mark - 2);
+                mark = i + 1;
                 writer.write("]]&gt;");
-            } else if (chr < 0x20) {
+            }
+            else if (chr < 0x20) {
                 if (chr != 0x9 && chr != 0xA && chr != 0xD) {
-                    throw new IOException("Illegal character code 0x" +
-                        Integer.toHexString(chr) + " in attribute value text");
+                    throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in attribute value text");
                 }
-            } else if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE ||
-                chr == 0xFFFF || chr > 0x10FFFF)) {
-                throw new IOException("Illegal character code 0x" +
-                    Integer.toHexString(chr) + " in attribute value text");
+            }
+            else if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE || chr == 0xFFFF || chr > 0x10FFFF)) {
+                throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in attribute value text");
             }
         }
-        writer.write(text, mark, text.length()-mark);
+
+        writer.write(text, mark, text.length() - mark);
     }
-    
+
     /**
      * Write content value with character entity substitutions.
      *
-     * @param text content value text
+     * @param text   content value text
      * @param writer sink for output text
+     *
      * @throws IOException on error writing to document
      */
 
     public void writeContent(String text, Writer writer) throws IOException {
         int mark = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
+
+        int chr;
+        for (int i = 0; i < text.length(); i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
             if (chr == '&') {
-                writer.write(text, mark, i-mark);
-                mark = i+1;
+                writer.write(text, mark, i - mark);
+                mark = i + 1;
                 writer.write("&amp;");
-            } else if (chr == '<') {
-                writer.write(text, mark, i-mark);
-                mark = i+1;
+            }
+            else if (chr == '<') {
+                writer.write(text, mark, i - mark);
+                mark = i + 1;
                 writer.write("&lt;");
-            } else if (chr == '>' && i > 2 && text.charAt(i-1) == ']' &&
-                text.charAt(i-2) == ']') {
-                writer.write(text, mark, i-mark-2);
-                mark = i+1;
+            }
+            else if (chr == '>' && i > 2 && text.charAt(i - 1) == ']' && text.charAt(i - 2) == ']') {
+                writer.write(text, mark, i - mark - 2);
+                mark = i + 1;
                 writer.write("]]&gt;");
-            } else if (chr < 0x20) {
+            }
+            else if (chr < 0x20) {
                 if (chr != 0x9 && chr != 0xA && chr != 0xD) {
-                    throw new IOException("Illegal character code 0x" +
-                        Integer.toHexString(chr) + " in content text");
+                    throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in content text");
                 }
-            } else if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE ||
-                chr == 0xFFFF || chr > 0x10FFFF)) {
-                throw new IOException("Illegal character code 0x" +
-                    Integer.toHexString(chr) + " in content text");
+            }
+            else if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE || chr == 0xFFFF || chr > 0x10FFFF)) {
+                throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in content text");
             }
         }
-        writer.write(text, mark, text.length()-mark);
+
+        writer.write(text, mark, text.length() - mark);
     }
-    
+
     /**
      * Write CDATA to document. This writes the beginning and ending sequences
      * for a CDATA section as well as the actual text, verifying that only
      * characters allowed by the encoding are included in the text.
      *
-     * @param text content value text
+     * @param text   content value text
      * @param writer sink for output text
+     *
      * @throws IOException on error writing to document
      */
 
     public void writeCData(String text, Writer writer) throws IOException {
         writer.write("<![CDATA[");
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
-            if (chr == '>' && i > 2 && text.charAt(i-1) == ']' &&
-                text.charAt(i-2) == ']') {
-                throw new IOException("Sequence \"]]>\" is not allowed " +                    "within CDATA section text");
-            } else if (chr < 0x20) {
+
+        int chr;
+        for (int i = 0; i < text.length(); i += Character.charCount(chr)) {
+            chr = text.codePointAt(i);
+            if (chr == '>' && i > 2 && text.charAt(i - 1) == ']' && text.charAt(i - 2) == ']') {
+                throw new IOException("Sequence \"]]>\" is not allowed within CDATA section text");
+            }
+
+            if (chr < 0x20) {
                 if (chr != 0x9 && chr != 0xA && chr != 0xD) {
-                    throw new IOException("Illegal character code 0x" +
-                        Integer.toHexString(chr) + " in CDATA section");
+                    throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in CDATA section");
                 }
-            } else if (chr > 0xD7FF &&
-                (chr < 0xE000 || chr == 0xFFFE || chr == 0xFFFF)) {
-                throw new IOException("Illegal character code 0x" +
-                    Integer.toHexString(chr) + " in CDATA section");
+            }
+            else if (chr > 0xD7FF && (chr < 0xE000 || chr == 0xFFFE || chr == 0xFFFF)) {
+                throw new IOException("Illegal character code 0x" + Integer.toHexString(chr) + " in CDATA section");
             }
         }
+
         writer.write(text);
         writer.write("]]>");
     }
-    
+
     /**
      * Get instance of escaper.
      *
      * @return escaper instance
      */
-    
+
     public static ICharacterEscaper getInstance() {
         return s_instance;
     }
