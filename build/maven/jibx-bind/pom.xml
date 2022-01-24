@@ -10,6 +10,7 @@
 
   <groupId>org.jibx</groupId>
   <artifactId>jibx-bind</artifactId>
+  <version>1.3.1-utf-8</version>
   <packaging>bundle</packaging>
 
   <name>jibx-bind - JiBX binding</name>

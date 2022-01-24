@@ -10,6 +10,7 @@
 
   <groupId>org.jibx</groupId>
   <artifactId>jibx-run</artifactId>
+  <version>1.3.1-utf-8</version>
   <packaging>bundle</packaging>
 
   <name>jibx-run - JiBX runtime</name>
